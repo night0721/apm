@@ -1,0 +1,53 @@
+.TH argon 1 argon\-1.0.0
+.SH NAME
+argon \- Minimalistic password manager 
+.SH SYNOPSIS
+.B argon
+.RB [ \-v ]
+.RB [ \-h ]
+.RB [ \-e ]
+.RB [ \-R ]
+.RB [ \-I ]
+.RB [ \-Q ]
+.RB [ \-L ]
+.RB [ \-G ]
+
+.SH DESCRIPTION
+argon is a minimalistic command line password manager and a rewrite of pass in C. It uses a unique key to encrypt every password, it provides functionality to edit, add, generate, show, list, remove passwords. It uses argon2 to create hash of master password and uses XSalsa20 to encrypt the password.
+
+.SH OPTIONS
+.TP
+.B \-v
+Prints the version of the program.
+
+.TP
+.B \-h
+Shows the help message.
+
+.TP
+.B \-e <filename>
+Edits the password using EDITOR.
+
+.TP
+.B \-R <filename>
+Removes password from ARGON_DIR.
+
+.TP
+.B \-I <filename>
+Insert password to ARGON_DIR.
+
+.TP
+.B \-Q <filename>
+Show password from ARGON_DIR.
+
+.TP
+.B \-L
+Lists the passwords in ARGON_DIR in a tree format.
+
+.TP
+.B \-G <filename> <length>
+Generate a password with specific length to add to ARGON_DIR.
+
+.SH AUTHOR
+Made by Night Kaly
+.B <night@night0721.xyz>
