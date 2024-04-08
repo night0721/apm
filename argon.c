@@ -331,9 +331,9 @@ int main(int argc, char **argv)
         usage(argv);
         return 0;
     }
-    if (strncmp(argv[1], "-v", 2) == 0) {
+    if (strncmp(argv[1], "-v", 2) == 0 && argc == 2) {
         printf("argon 1.0.0\n");
-    } else if (strncmp(argv[1], "-h", 2) == 0) {
+    } else if (strncmp(argv[1], "-h", 2) == 0 && argc == 2) {
         usage(argv);
     } else if (strncmp(argv[1], "-e", 2) == 0 && argc == 3) {
         decrypt_password(argv[2], 1);
@@ -345,22 +345,24 @@ int main(int argc, char **argv)
             printf("Removed %s\n", basename(pass_file));
         }
         free(pass_file);
-    } else if (strncmp(argv[1], "-I", 6) == 0 && argc == 3) {
+    } else if (strncmp(argv[1], "-I", 2) == 0 && argc == 3) {
         char *pw = get_password();
         encrypt_password(argv[2], pw);
         free(pw);
-    } else if (strncmp(argv[1], "-Q", 4) == 0 && argc == 3) {
+    } else if (strncmp(argv[1], "-Q", 2) == 0 && argc == 3) {
         decrypt_password(argv[2], 0);
-    } else if (strncmp(argv[1], "-L", 2) == 0) {
+    } else if (strncmp(argv[1], "-L", 2) == 0 && argc == 2) {
         char *argon = get_argon();
         tree(argon, 0);
         free(argon);
-    } else if (strncmp(argv[1], "-G", 8) == 0) {
+    } else if (strncmp(argv[1], "-G", 2) == 0) {
         if (argc < 4) {
             die("Missing length or name to generate password");
         }
         int length = atoi(argv[3]);
         generate_password(length, argv[2]);
+    } else if (argc == 2) {
+        decrypt_password(argv[1], 0);
     } else {
         usage(argv);
     }
