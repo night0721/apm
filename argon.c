@@ -9,9 +9,13 @@
 #include <sys/resource.h>
 #include <sodium.h>
 
+#include "arg.h"
+
 #define KEY_SIZE crypto_secretbox_KEYBYTES
 #define NONCE_SIZE crypto_secretbox_NONCEBYTES
 #define SALT_SIZE crypto_pwhash_SALTBYTES
+
+char *argv0;
 
 void die(char *str);
 
@@ -27,16 +31,19 @@ void *memalloc(size_t size)
 
 char *get_master_key();
 
-void usage(char **args)
+void usage()
 {
-    printf("Usage: %s [-vheRIQLG] [-v] [-h] [-e <password>] [-R <password>] [-I <password>] [-Q <password>] [-L] [-G <password> <length>]\n", args[0]);
+    printf("Usage: %s [-vhL] [[-e | -R | -I | -Q] <password>] [-G <password> <length>]\n", argv0);
+    exit(EXIT_SUCCESS);
 }
 
-int compare(const void *a, const void *b) {
+int compare(const void *a, const void *b)
+{
     return strcmp(*(const char **)a, *(const char **)b);
 }
 
-void tree(const char *basepath, int depth) {
+void tree(const char *basepath, int depth)
+{
     char path[PATH_MAX];
     struct dirent *dp;
     DIR *dir = opendir(basepath);
@@ -140,7 +147,6 @@ char *get_password()
     /* remove newline character */
     password[strcspn(password, "\n")] = '\0';
     return password;
-
 }
 
 void encrypt_password(const char *name, char *password)
@@ -297,7 +303,7 @@ char *get_master_key()
     return m_key;
 }
 
-void generate_password(int length, char *name)
+void generate_password(char*name, int length)
 {
     srand(time(NULL));
     const char *characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890123456789~`!@#$%^&*()-_+=[]{}|/,.<>;:'";
@@ -307,7 +313,7 @@ void generate_password(int length, char *name)
         random_string[i] = characters[rand() % (characters_len - 1)];
     }
     random_string[length] = '\0';
-    printf("The geneated password for %s is: %s\n", name, random_string);
+    printf("The generated password for %s is: %s\n", name, random_string);
     encrypt_password(name, random_string);
     free(random_string);
 }
@@ -318,7 +324,7 @@ void die(char *str)
     exit(EXIT_FAILURE);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     if (sodium_init() == -1) {
         die("Error initializing sodium");
@@ -327,45 +333,64 @@ int main(int argc, char **argv)
     /* disable core dump for security */
     setrlimit(RLIMIT_CORE, &(struct rlimit) {0, 0});
     
-    if (argc == 1) {
-        usage(argv);
-        return 0;
-    }
-    if (strncmp(argv[1], "-v", 2) == 0 && argc == 2) {
-        printf("argon 1.0.0\n");
-    } else if (strncmp(argv[1], "-h", 2) == 0 && argc == 2) {
-        usage(argv);
-    } else if (strncmp(argv[1], "-e", 2) == 0 && argc == 3) {
-        decrypt_password(argv[2], 1);
-    } else if (strncmp(argv[1], "-R", 2) == 0 && argc == 3) {
-        char *pass_file = get_passfile(argv[2]);
-        if (remove(pass_file)) {
-            perror("argon");
-        } else {
-            printf("Removed %s\n", basename(pass_file));
+    ARGBEGIN {
+        case 'h':
+            usage();
+            break;
+        case 'v':
+            printf("argon 1.0.0\n");
+            exit(EXIT_SUCCESS);
+            break;
+        case 'e':
+            decrypt_password(EARGF(usage()), 1);
+            exit(EXIT_SUCCESS);
+            break;
+        case 'R':;
+            char *pass_file = get_passfile(EARGF(usage()));
+            if (remove(pass_file)) {
+                perror("argon");
+            } else {
+                printf("Removed %s\n", basename(pass_file));
+            }
+            free(pass_file);
+            exit(EXIT_SUCCESS);
+            break;
+        case 'I':;
+            char *pw = get_password();
+            encrypt_password(EARGF(usage()), pw);
+            free(pw);
+            exit(EXIT_SUCCESS);
+            break;
+        case 'Q':
+            decrypt_password(EARGF(usage()), 0);
+            exit(EXIT_SUCCESS);
+            break;
+        case 'L':;
+            char *argon = get_argon();
+            tree(argon, 0);
+            free(argon);
+            exit(EXIT_SUCCESS);
+            break;
+        case 'G':;
+            if (argc > 0)
+                --argc, ++argv;
+            goto run;
+        default:
+            usage();
+    } ARGEND;
+
+    run:
+        switch (argc) {
+            case 0:
+                usage();
+                break;
+            case 1:
+                decrypt_password(argv[0], 0);
+                break;
+            case 2:
+                generate_password(argv[0], atoi(argv[1]));
+                break;
         }
-        free(pass_file);
-    } else if (strncmp(argv[1], "-I", 2) == 0 && argc == 3) {
-        char *pw = get_password();
-        encrypt_password(argv[2], pw);
-        free(pw);
-    } else if (strncmp(argv[1], "-Q", 2) == 0 && argc == 3) {
-        decrypt_password(argv[2], 0);
-    } else if (strncmp(argv[1], "-L", 2) == 0 && argc == 2) {
-        char *argon = get_argon();
-        tree(argon, 0);
-        free(argon);
-    } else if (strncmp(argv[1], "-G", 2) == 0) {
-        if (argc < 4) {
-            die("Missing length or name to generate password");
-        }
-        int length = atoi(argv[3]);
-        generate_password(length, argv[2]);
-    } else if (argc == 2) {
-        decrypt_password(argv[1], 0);
-    } else {
-        usage(argv);
-    }
 
     return 0;
 
