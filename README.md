@@ -12,17 +12,23 @@ export ARGON_KEY=~/secret/argon_key
 
 `ARGON_DIR` is the directory where passwords are stored and `ARGON_KEY` is the path to the master key file.
 
-## Dependencies
+# Dependencies
 - libsodium 
 - gcc
 
-## Building
+# Building
 ```sh
 $ make
 # make install
 ```
 
-## Usage
+# Usage
 ```
 Usage: ./argon [-vheRIQLG] [-v] [-h] [-e <password>] [-R <password>] [-I <password>] [-Q <password>] [-L] [-G <password> <length>]
 ```
+
+# Contributions
+Contributions are welcomed, feel free to open a pull request.
+
+# License
+This project is licensed under the GNU Public License v3.0. See [LICENSE](https://github.com/night0721/argon/blob/master/LICENSE) for more information.
