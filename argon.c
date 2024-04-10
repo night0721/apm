@@ -382,7 +382,12 @@ int main(int argc, char *argv[])
             fseek(file, 0, SEEK_SET);
             char *content = memalloc(file_size * sizeof(char));
             fread(content, sizeof(char), file_size, file);
-            encrypt_password(basename(filename), content);
+            char *f_basename = basename(filename);
+            char *dot = strrchr(f_basename, '.');
+            if (dot != NULL) {
+                *dot = '\0';
+            }
+            encrypt_password(f_basename, content);
             exit(EXIT_SUCCESS);
             break;
         case 'G':;
