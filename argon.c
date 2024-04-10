@@ -33,7 +33,7 @@ char *get_master_key();
 
 void usage()
 {
-    printf("Usage: %s [-vhL] [[-e | -R | -I | -Q] <password>] [-G <password> <length>]\n", argv0);
+    printf("Usage: %s [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G <password> <length>]\n", argv0);
     exit(EXIT_SUCCESS);
 }
 
@@ -214,15 +214,15 @@ void decrypt_password(const char *name, int open)
     }
     
     /* get salt and nonce from file */
-    fread(salt, sizeof(salt), 1, file);
-    fread(nonce, sizeof(nonce), 1, file);
+    fread(salt, sizeof(char), sizeof(salt), file);
+    fread(nonce, sizeof(char), sizeof(nonce), file);
 
     fseek(file, 0, SEEK_END);
     size_t ciphered_len = ftell(file) - sizeof(salt) - sizeof(nonce);
     fseek(file, sizeof(salt) + sizeof(nonce), SEEK_SET);
 
     char ciphered[ciphered_len];
-    fread(ciphered, 1, ciphered_len, file);
+    fread(ciphered, sizeof(char), ciphered_len, file);
     if (crypto_pwhash(key, sizeof(key), m_key, strlen(m_key), salt,
                 crypto_pwhash_OPSLIMIT_INTERACTIVE,
                 crypto_pwhash_MEMLIMIT_INTERACTIVE,
@@ -369,6 +369,20 @@ int main(int argc, char *argv[])
             char *argon = get_argon();
             tree(argon, 0);
             free(argon);
+            exit(EXIT_SUCCESS);
+            break;
+        case 'M':;
+            char *filename = EARGF(usage());
+            FILE *file = fopen(filename, "r");
+            if (file == NULL) {
+                die("Cannot open file to read");
+            }
+            fseek(file, 0, SEEK_END);
+            long file_size = ftell(file);
+            fseek(file, 0, SEEK_SET);
+            char *content = memalloc(file_size * sizeof(char));
+            fread(content, sizeof(char), file_size, file);
+            encrypt_password(basename(filename), content);
             exit(EXIT_SUCCESS);
             break;
         case 'G':;

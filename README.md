@@ -24,7 +24,7 @@ $ make
 
 # Usage
 ```
-Usage: ./argon [-vheRIQLG] [-v] [-h] [-e <password>] [-R <password>] [-I <password>] [-Q <password>] [-L] [-G <password> <length>]
+Usage: argon [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G <password> <length>]
 ```
 
 # Contributions
