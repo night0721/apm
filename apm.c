@@ -23,7 +23,7 @@ void *memalloc(size_t size)
 {
     void *ptr = malloc(size);
     if (!ptr) {
-        perror("argon");
+        perror("apm");
         exit(EXIT_FAILURE);
     }
     return ptr;
@@ -87,17 +87,17 @@ void tree(const char *basepath, int depth)
     closedir(dir);
 }
 
-char *get_argon()
+char *get_apm()
 {
-    char dirname[] = "argon";
-    const char *argon_dir = getenv("ARGON_DIR");
+    char dirname[] = "apm";
+    const char *apm_dir = getenv("APM_DIR");
     /* for / and null */
     size_t len = 2;
-    if (argon_dir == NULL) {
-        argon_dir = getenv("XDG_DATA_HOME");
-        if (argon_dir == NULL) {
-            argon_dir = getenv("HOME");
-            if (argon_dir == NULL) {
+    if (apm_dir == NULL) {
+        apm_dir = getenv("XDG_DATA_HOME");
+        if (apm_dir == NULL) {
+            apm_dir = getenv("HOME");
+            if (apm_dir == NULL) {
                 die("HOME not defined");
             }
         }
@@ -106,15 +106,15 @@ char *get_argon()
         /* no / */
         len -= 1;
     }
-    size_t dir_len = strlen(argon_dir);
+    size_t dir_len = strlen(apm_dir);
     len += dir_len;
     char *dir = memalloc(len * sizeof(char));
 
-    /* check if it is ARGON_DIR or other */
+    /* check if it is apm_DIR or other */
     if (len > dir_len) {
-        snprintf(dir, len, "%s/%s", argon_dir, dirname);
+        snprintf(dir, len, "%s/%s", apm_dir, dirname);
     } else {
-        strncpy(dir, argon_dir, len);
+        strncpy(dir, apm_dir, len);
     }
     struct stat stats;
     /* check defined path is directory */
@@ -128,7 +128,7 @@ char *get_argon()
 
 char *get_passfile(const char *key)
 {
-    char *dir = get_argon();
+    char *dir = get_apm();
     /* concat file name */
     /* / and null */
     size_t len = strlen(dir) + strlen(key) + 2; 
@@ -165,7 +165,7 @@ void encrypt_password(const char *name, char *password)
                 crypto_pwhash_MEMLIMIT_INTERACTIVE,
                   crypto_pwhash_ALG_DEFAULT) != 0) {
         sodium_free(m_key);
-        perror("argon");
+        perror("apm");
         die("Cannot create key");
     }
     size_t pw_len = strlen(password);
@@ -229,7 +229,7 @@ void decrypt_password(const char *name, int open)
                   crypto_pwhash_ALG_DEFAULT) != 0) {
         sodium_free(m_key);
         free(filepath);
-        perror("argon");
+        perror("apm");
         die("Cannot create key");
     }
     /* take authentication bytes away */
@@ -249,7 +249,7 @@ void decrypt_password(const char *name, int open)
         if (editor == NULL) {
             die("EDITOR not defined");
         }
-        char tmp_f[] = "/tmp/argon";
+        char tmp_f[] = "/tmp/apm";
         FILE *tmp = fopen(tmp_f, "w+");
         fprintf(tmp, "%s\n", deciphered);
         fclose(tmp);
@@ -275,12 +275,12 @@ void decrypt_password(const char *name, int open)
 
 char *get_master_key()
 {
-    char *key_path = getenv("ARGON_KEY");
+    char *key_path = getenv("APM_KEY");
     char *m_key = NULL;
     if (key_path != NULL) {
         FILE *key_file = fopen(key_path, "r");
         if (key_file == NULL) {
-            perror("argon");
+            perror("apm");
             exit(EXIT_FAILURE);
         }
         struct stat st;
@@ -288,16 +288,16 @@ char *get_master_key()
             size_t pass_size = st.st_size;
             m_key = (char *) sodium_malloc(pass_size * sizeof(char));
             if (m_key == NULL) {
-                perror("argon");
+                perror("apm");
                 exit(EXIT_FAILURE);
             }
             if (fgets(m_key, pass_size, key_file) == NULL) {
-                perror("argon");
+                perror("apm");
                 exit(EXIT_FAILURE);
             }
         }
     } else {
-        fprintf(stderr, "argon: You are required to set ARGON_KEY to pass file\n");
+        fprintf(stderr, "apm: You are required to set APM_KEY to pass file\n");
         exit(EXIT_FAILURE);
     }
     return m_key;
@@ -320,7 +320,7 @@ void generate_password(char*name, int length)
 
 void die(char *str)
 {
-    fprintf(stderr, "argon: %s\n", str);
+    fprintf(stderr, "apm: %s\n", str);
     exit(EXIT_FAILURE);
 }
 
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
             usage();
             break;
         case 'v':
-            printf("argon 1.0.0\n");
+            printf("apm 1.0.0\n");
             exit(EXIT_SUCCESS);
             break;
         case 'e':
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
         case 'R':;
             char *pass_file = get_passfile(EARGF(usage()));
             if (remove(pass_file)) {
-                perror("argon");
+                perror("apm");
             } else {
                 printf("Removed %s\n", basename(pass_file));
             }
@@ -366,9 +366,9 @@ int main(int argc, char *argv[])
             exit(EXIT_SUCCESS);
             break;
         case 'L':;
-            char *argon = get_argon();
-            tree(argon, 0);
-            free(argon);
+            char *apm = get_apm();
+            tree(apm, 0);
+            free(apm);
             exit(EXIT_SUCCESS);
             break;
         case 'M':;

@@ -1,0 +1,58 @@
+.TH apm 1 apm\-1.0.0
+.SH NAME
+apm \- Minimalistic password manager 
+.SH SYNOPSIS
+.B apm
+.RB [ \-v ]
+.RB [ \-h ]
+.RB [ \-e ]
+.RB [ \-R ]
+.RB [ \-I ]
+.RB [ \-Q ]
+.RB [ \-L ]
+.RB [ \-M ]
+.RB [ \-G ]
+
+.SH DESCRIPTION
+apm is a minimalistic command line password manager and a rewrite of pass in C. It uses a unique key to encrypt every password, it provides functionality to edit, add, generate, show, list, remove passwords. It uses argon2 to create hash of master password and uses XSalsa20 to encrypt the password.
+
+.SH OPTIONS
+.TP
+.B \-v
+Prints the version of the program.
+
+.TP
+.B \-h
+Shows the help message.
+
+.TP
+.B \-e <filename>
+Edits the password using EDITOR.
+
+.TP
+.B \-R <filename>
+Removes password from APM_DIR.
+
+.TP
+.B \-I <filename>
+Insert password to APM_DIR.
+
+.TP
+.B \-Q <filename>
+Show password from APM_DIR.
+
+.TP
+.B \-L
+Lists the passwords in APM_DIR in a tree format.
+
+.TP
+.B \-M
+Insert password from a file, in order to fix -I can't take multi line input.
+
+.TP
+.B \-G <filename> <length>
+Generate a password with specific length to add to APM_DIR.
+
+.SH AUTHOR
+Made by Night Kaly
+.B <night@night0721.xyz>

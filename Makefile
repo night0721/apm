@@ -1,40 +1,45 @@
 .POSIX:
 .SUFFIXES:
 
-CC=cc
+CC = cc
+VERSION = 1.0
+TARGET = apm
+MANPAGE = $(TARGET).1
+PREFIX ?= /usr/local
+BINDIR = $(PREFIX)/bin
+MANDIR = $(PREFIX)/share/man/man1
 
-VERSION=1.0.0
-PREFIX = /usr/local
-MANPREFIX = ${PREFIX}/share/man
+# Flags
+LDFLAGS = $(shell pkg-config --libs libsodium)
+CFLAGS = -O3 -march=native -mtune=native -pipe -s -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
 
-CFLAGS = -O3 -march=native -mtune=native -pipe -s -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -lsodium 
+SRC = apm.c
 
-SRC = argon.c
+$(TARGET): $(SRC)
+	$(CC) $(SRC) -o $@ $(CFLAGS) $(LDFLAGS)
 
-argon: argon.c
-	${CC} ${SRC} -o $@ ${CFLAGS}
+dist:
+	mkdir -p $(TARGET)-$(VERSION)
+	cp -R README.md $(MANPAGE) $(TARGET) $(TARGET)-$(VERSION)
+	tar -cf $(TARGET)-$(VERSION).tar $(TARGET)-$(VERSION)
+	gzip $(TARGET)-$(VERSION).tar
+	rm -rf $(TARGET)-$(VERSION)
 
-clean:
-	rm -rf argon
-
-dist: version argon
-	mkdir -p argon-${VERSION}
-	cp -R LICENSE README.md argon.1 argon argon-${VERSION}
-	tar -cf argon-${VERSION}.tar argon-${VERSION}
-	gzip argon-${VERSION}.tar
-	rm -rf argon-${VERSION}
-
-install: all
-	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f argon ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/argon
-	mkdir -p ${DESTDIR}${MANPREFIX}/man1
-	cp argon.1 ${DESTDIR}${MANPREFIX}/man1/argon.1
-	chmod 644 ${DESTDIR}${MANPREFIX}/man1/argon.1
+install: $(TARGET)
+	mkdir -p $(DESTDIR)$(BINDIR)
+	mkdir -p $(DESTDIR)$(MANDIR)
+	cp -p $(TARGET) $(DESTDIR)$(BINDIR)/$(TARGET)
+	chmod 755 $(DESTDIR)$(BINDIR)/$(TARGET)
+	cp -p $(MANPAGE) $(DESTDIR)$(MANDIR)/$(MANPAGE)
+	chmod 644 $(DESTDIR)$(MANDIR)/$(MANPAGE)
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/argon\
-		${DESTDIR}${MANPREFIX}/man1/argon.1
-all: argon
+	$(RM) $(DESTDIR)$(BINDIR)/$(TARGET)
+	$(RM) $(DESTDIR)$(MANDIR)/$(MANPAGE)
 
-.PHONY: all clean dist install uninstall argon
+clean:
+	$(RM) $(TARGET)
+
+all: $(TARGET)
+
+.PHONY: all dist install uninstall clean
