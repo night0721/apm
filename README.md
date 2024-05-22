@@ -11,20 +11,19 @@ export APM_KEY=~/secret/apm_key
 
 `APM_DIR` is the directory where passwords are stored and `APM_KEY` is the path to the master key file.
 
+# Usage
+```
+Usage: apm [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G <password> <length>]
+```
+
 # Dependencies
 - libsodium 
 
 # Building
 You will need to run these with elevated privilages.
-
 ```
 $ make
 # make install
-```
-
-# Usage
-```
-Usage: apm [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G <password> <length>]
 ```
 
 # Contributions
