@@ -20,7 +20,7 @@ export APM_KEY=~/secret/apm_key
 
 You will need to run these with elevated privilages.
 
-```sh
+```
 $ make
 # make install
 ```
