@@ -1,5 +1,5 @@
 # apm
-apm, argon password manager; a minimalistic command line password manager and a rewrite of [pass](https://www.passwordstore.org/) in C.  It uses a unique key to encrypt every password, it provides functionality to edit, add, generate, show, list, remove passwords. It uses argon2 to create hash of master password and uses XSalsa20 to encrypt the password.
+apm, argon password manager; a simple implementation of [pass](https://www.passwordstore.org/)(1) in C.  It uses a unique key to encrypt every password, it provides functionality to edit, add, generate, show, list, remove passwords. It uses argon2 to create hash of master password and uses XSalsa20 to encrypt the password.
 
 > The name "argon" is chosen as it uses argon2 algorithm and sodium(library) is stored with argon.
 
