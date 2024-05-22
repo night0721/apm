@@ -15,7 +15,6 @@ export APM_KEY=~/secret/apm_key
 # Dependencies
 
 - libsodium 
-- gcc
 
 # Building
 
