@@ -7,6 +7,8 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+#include <linux/limits.h>
+
 #include <sodium.h>
 
 #include "arg.h"
@@ -18,6 +20,7 @@
 char *argv0;
 
 void die(char *str);
+char *get_master_key(void);
 
 void *memalloc(size_t size)
 {
@@ -29,9 +32,7 @@ void *memalloc(size_t size)
     return ptr;
 }
 
-char *get_master_key();
-
-void usage()
+void usage(void)
 {
     printf("Usage: %s [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G <password> <length>]\n", argv0);
     exit(EXIT_SUCCESS);
@@ -87,7 +88,7 @@ void tree(const char *basepath, int depth)
     closedir(dir);
 }
 
-char *get_apm()
+char *get_apm(void)
 {
     char dirname[] = "apm";
     const char *apm_dir = getenv("APM_DIR");
@@ -138,7 +139,7 @@ char *get_passfile(const char *key)
     return path;
 }
 
-char *get_password()
+char *get_password(void)
 {
     size_t len;
     char *password = NULL;
@@ -273,7 +274,7 @@ void decrypt_password(const char *name, int open)
     fclose(file);
 }
 
-char *get_master_key()
+char *get_master_key(void)
 {
     char *key_path = getenv("APM_KEY");
     char *m_key = NULL;

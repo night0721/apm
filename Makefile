@@ -9,7 +9,7 @@ BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man/man1
 
 LDFLAGS != pkg-config --libs libsodium 
-CFLAGS = -O3 -march=native -mtune=native -pipe -s -std=c99 -pedantic -Wall
+CFLAGS = -O3 -march=native -mtune=native -pipe -s -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE
 
 SRC = apm.c
 
