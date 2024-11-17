@@ -109,7 +109,7 @@ char *get_apm(void)
     }
     size_t dir_len = strlen(apm_dir);
     len += dir_len;
-    char *dir = memalloc(len * sizeof(char));
+    char *dir = memalloc(len);
 
     /* check if it is apm_DIR or other */
     if (len > dir_len) {
@@ -133,7 +133,7 @@ char *get_passfile(const char *key)
     /* concat file name */
     /* / and null */
     size_t len = strlen(dir) + strlen(key) + 2; 
-    char *path = memalloc(len * sizeof(char));
+    char *path = memalloc(len);
     snprintf(path, len, "%s/%s", dir, key);
     free(dir);
     return path;
@@ -254,7 +254,7 @@ void decrypt_password(const char *name, int open)
         FILE *tmp = fopen(tmp_f, "w+");
         fprintf(tmp, "%s\n", deciphered);
         fclose(tmp);
-        char *cmd = memalloc((strlen(editor) + strlen(tmp_f) + 1) * sizeof(char));
+        char *cmd = memalloc(strlen(editor) + strlen(tmp_f) + 1);
         sprintf(cmd, "%s %s", editor, tmp_f);
         system(cmd);
         free(cmd);
@@ -263,7 +263,7 @@ void decrypt_password(const char *name, int open)
         long tmp_size = ftell(tmp);
         fseek(tmp, 0, SEEK_SET);
         char content[tmp_size + 1];
-        fgets(content, tmp_size, tmp);
+        fread(content, tmp_size, sizeof(char), tmp);
         encrypt_password(name, content);
         fclose(tmp);
     } else {
@@ -287,7 +287,7 @@ char *get_master_key(void)
         struct stat st;
         if ((fstat(fileno(key_file), &st) == 0) || (S_ISREG(st.st_mode))) {
             size_t pass_size = st.st_size;
-            m_key = (char *) sodium_malloc(pass_size * sizeof(char));
+            m_key = (char *) sodium_malloc(pass_size);
             if (m_key == NULL) {
                 perror("apm");
                 exit(EXIT_FAILURE);
@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
             fseek(file, 0, SEEK_END);
             long file_size = ftell(file);
             fseek(file, 0, SEEK_SET);
-            char *content = memalloc(file_size * sizeof(char));
+            char *content = memalloc(file_size);
             fread(content, sizeof(char), file_size, file);
             char *f_basename = basename(filename);
             char *dot = strrchr(f_basename, '.');
