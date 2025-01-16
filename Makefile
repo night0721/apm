@@ -1,5 +1,4 @@
 .POSIX:
-.SUFFIXES:
 
 VERSION = 1.0
 TARGET = apm
@@ -7,20 +6,23 @@ MANPAGE = $(TARGET).1
 PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man/man1
+PKG_CONFIG = pkg-config
 
-LDFLAGS != pkg-config --libs libsodium 
-CFLAGS = -Os -march=native -mtune=native -pipe -s -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE
+PKGS = libsodium
+LIBS != $(PKG_CONFIG) --libs $(PKGS)
+INCS != $(PKG_CONFIG) --cflags $(PKGS)
+CFLAGS += -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE $(INCS)
 
-SRC = apm.c
+.c.o:
+	$(CC) -o $@ $(CFLAGS) -c $<
 
-$(TARGET): $(SRC)
-	$(CC) $(SRC) -o $@ $(CFLAGS) $(LDFLAGS)
+$(TARGET): $(TARGET).o
+	$(CC) -o $@ $(TARGET).o $(LIBS)
 
 dist:
 	mkdir -p $(TARGET)-$(VERSION)
 	cp -R README.md $(MANPAGE) $(TARGET) $(TARGET)-$(VERSION)
-	tar -cf $(TARGET)-$(VERSION).tar $(TARGET)-$(VERSION)
-	gzip $(TARGET)-$(VERSION).tar
+	tar -czf $(TARGET)-$(VERSION).tar.gz $(TARGET)-$(VERSION)
 	rm -rf $(TARGET)-$(VERSION)
 
 install: $(TARGET)
@@ -32,11 +34,11 @@ install: $(TARGET)
 	chmod 644 $(DESTDIR)$(MANDIR)/$(MANPAGE)
 
 uninstall:
-	rm $(DESTDIR)$(BINDIR)/$(TARGET)
-	rm $(DESTDIR)$(MANDIR)/$(MANPAGE)
+	rm -f $(DESTDIR)$(BINDIR)/$(TARGET)
+	rm -f $(DESTDIR)$(MANDIR)/$(MANPAGE)
 
 clean:
-	rm $(TARGET)
+	rm -f $(TARGET) *.o
 
 all: $(TARGET)
 
