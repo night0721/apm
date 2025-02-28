@@ -14,7 +14,7 @@ apm \- Minimalistic password manager
 .RB [ \-G ]
 
 .SH DESCRIPTION
-apm is a minimalistic command line password manager and a rewrite of pass in C. It uses a unique key to encrypt every password, it provides functionality to edit, add, generate, show, list, remove passwords. It uses argon2 to create hash of master password and uses XSalsa20 to encrypt the password.
+Simple implementation of pass in C. It uses a unique key to encrypt every password, it provides functionality to edit, add, generate, show, list, remove passwords. It uses blake2b to create hash of master password and uses AES256-CBC to encrypt the password.
 
 .SH OPTIONS
 .TP
