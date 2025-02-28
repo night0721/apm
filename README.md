@@ -9,6 +9,8 @@ export APM_KEY=~/secret/apm_key
 
 `APM_DIR` is the directory where passwords are stored and `APM_KEY` is the path to the master key file.
 
+[AES256 Implementation](https://github.com/halloweeks/AES-256-CBC) [Blake2b Implementation](https://github.com/jamesvan2019/blake2b_c)
+
 # Usage
 ```
 Usage: apm [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G <password> <length>]
