@@ -8,10 +8,7 @@ BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man/man1
 PKG_CONFIG = pkg-config
 
-PKGS = libsodium
-LIBS != $(PKG_CONFIG) --libs $(PKGS)
-INCS != $(PKG_CONFIG) --cflags $(PKGS)
-CFLAGS += -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE $(INCS)
+CFLAGS += -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE
 
 .c.o:
 	$(CC) -o $@ $(CFLAGS) -c $<
