@@ -1,7 +1,5 @@
 # apm
-apm, argon password manager; a simple implementation of [pass](https://www.passwordstore.org/)(1) in C.  It uses a unique key to encrypt every password, it provides functionality to edit, add, generate, show, list, remove passwords. It uses argon2 to create hash of master password and uses XSalsa20 to encrypt the password.
-
-> The name "argon" is chosen as it uses argon2 algorithm and sodium(library) is stored with argon.
+A simple implementation of [pass](https://www.passwordstore.org/)(1) in C. It uses a unique key to encrypt every password, it provides functionality to edit, add, generate, show, list, remove passwords. It uses blake2b to create hash of master password and uses AES256-CBC to encrypt the password.
 
 Before using apm, you must export 2 environment variables in order to make it work
 ```sh
@@ -17,7 +15,7 @@ Usage: apm [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G <password> <l
 ```
 
 # Dependencies
-- libsodium 
+None
 
 # Building
 You will need to run these with elevated privilages.
