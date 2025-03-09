@@ -166,7 +166,9 @@ void encrypt_password(const char *name, char *password)
 
 	size_t pw_len = strlen(password);
 	/* find last \n and replace with 0 */
-	strrchr(password, '\n')[0] = '\0';
+	if (strrchr(password, '\n') != NULL) {
+		strrchr(password, '\n')[0] = '\0';
+	}
 	char data[1024]; /* max 1024 bytes */
 	strcpy(data, password);
 
