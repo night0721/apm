@@ -20,7 +20,7 @@ dist:
 	mkdir -p $(TARGET)-$(VERSION)
 	cp -R README.md $(MANPAGE) $(TARGET) $(TARGET)-$(VERSION)
 	tar -czf $(TARGET)-$(VERSION).tar.gz $(TARGET)-$(VERSION)
-	rm -rf $(TARGET)-$(VERSION)
+	$(RM) -r $(TARGET)-$(VERSION)
 
 install: $(TARGET)
 	mkdir -p $(DESTDIR)$(BINDIR)
@@ -31,11 +31,11 @@ install: $(TARGET)
 	chmod 644 $(DESTDIR)$(MANDIR)/$(MANPAGE)
 
 uninstall:
-	rm -f $(DESTDIR)$(BINDIR)/$(TARGET)
-	rm -f $(DESTDIR)$(MANDIR)/$(MANPAGE)
+	$(RM) $(DESTDIR)$(BINDIR)/$(TARGET)
+	$(RM) $(DESTDIR)$(MANDIR)/$(MANPAGE)
 
 clean:
-	rm -f $(TARGET) *.o
+	$(RM) $(TARGET) *.o
 
 all: $(TARGET)
 
