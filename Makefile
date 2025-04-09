@@ -6,7 +6,6 @@ MANPAGE = $(TARGET).1
 PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man/man1
-PKG_CONFIG = pkg-config
 
 CFLAGS += -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE
 
@@ -14,7 +13,7 @@ CFLAGS += -std=c99 -pedantic -Wall -D_DEFAULT_SOURCE
 	$(CC) -o $@ $(CFLAGS) -c $<
 
 $(TARGET): $(TARGET).o
-	$(CC) -o $@ $(TARGET).o $(LIBS)
+	$(CC) -o $@ $(TARGET).o
 
 dist:
 	mkdir -p $(TARGET)-$(VERSION)
