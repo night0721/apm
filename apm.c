@@ -53,13 +53,23 @@ void tree(const char *basepath, int depth)
 	if (!dir)
 		return;
 
-	/* max 1024 files */
-	char *files[1024];
-	int file_count = 0;
+	char **files = NULL;
+	size_t file_count = 0;
+	size_t file_capacity = 0;
 
 	while ((dp = readdir(dir)) != NULL) {
 		if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0) {
+			if (file_count == file_capacity) {
+				file_capacity = file_capacity ? file_capacity * 2 : 32;
+				files = realloc(files, file_capacity * sizeof(*files));
+				if (!files)
+					die("realloc");
+			}
+
 			files[file_count] = strdup(dp->d_name);
+			if (!files[file_count])
+				die("strdup");
+
 			file_count++;
 		}
 	}
@@ -77,15 +87,20 @@ void tree(const char *basepath, int depth)
 
 		printf("%s\n", files[i]);
 
-		strcpy(path, basepath);
-		strcat(path, "/");
-		strcat(path, files[i]);
+		if (snprintf(path, sizeof(path), "%s/%s", basepath,
+					files[i]) >= sizeof(path)) {
+			free(files[i]);
+			continue;
+		}
 
-		tree(path, depth + 1);
+		struct stat st;
+		if (lstat(path, &st) == 0 && S_ISDIR(st.st_mode))
+			tree(path, depth + 1);
 
 		free(files[i]);
 	}
 
+	free(files);
 	closedir(dir);
 }
 
