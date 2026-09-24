@@ -35,7 +35,9 @@ void *memalloc(size_t size)
 
 void usage(void)
 {
-	printf("Usage: %s [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G <password> <length>]\n", argv0);
+	printf("Usage: %s [-vhL] [[-e | -R | -I | -Q] <password>] [-M <file>] [-G "
+		   "<password> <length>]\n",
+		   argv0);
 	exit(EXIT_SUCCESS);
 }
 
@@ -87,8 +89,8 @@ void tree(const char *basepath, int depth)
 
 		printf("%s\n", files[i]);
 
-		if (snprintf(path, sizeof(path), "%s/%s", basepath,
-					files[i]) >= sizeof(path)) {
+		if (snprintf(path, sizeof(path), "%s/%s", basepath, files[i]) >=
+			sizeof(path)) {
 			free(files[i]);
 			continue;
 		}
@@ -160,9 +162,9 @@ char *get_password(void)
 	size_t len;
 	char *password = NULL;
 
-    printf("Enter password to encrypt: \n");
+	printf("Enter password to encrypt: \n");
 
-    getline(&password, &len, stdin);
+	getline(&password, &len, stdin);
 	/* remove newline character */
 	password[strcspn(password, "\n")] = '\0';
 	return password;
@@ -187,7 +189,7 @@ void encrypt_password(const char *name, char *password)
 	char data[1024]; /* max 1024 bytes */
 	strcpy(data, password);
 
-	size_t data_len = EncryptData((uint8_t *) data, pw_len, key, iv);
+	size_t data_len = EncryptData((uint8_t *)data, pw_len, key, iv);
 
 	char *filepath = get_passfile(name);
 	FILE *file = fopen(filepath, "wb");
@@ -236,7 +238,7 @@ void decrypt_password(const char *name, int open)
 	fread(ciphered, 1, ciphered_len, file);
 	blake2b(key, KEY_SIZE, NULL, 0, m_key, strlen(m_key));
 
-	size_t data_len = DecryptData((uint8_t *) ciphered, ciphered_len, key, iv);
+	size_t data_len = DecryptData((uint8_t *)ciphered, ciphered_len, key, iv);
 	ciphered[data_len] = '\0';
 
 	if (open) {
@@ -307,7 +309,9 @@ void random_bytes(uint8_t *bytes, size_t size)
 void generate_password(char *name, int length)
 {
 	srand(time(NULL));
-	const char *characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890123456789~`!@#$%^&*()-_+=[]{}|/,.<>;:'";
+	const char *characters =
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY"
+		"Z01234567890123456789~`!@#$%^&*()-_+=[]{}|/,.<>;:'";
 	size_t characters_len = strlen(characters);
 	char *random_string = memalloc(length + 1);
 	for (int i = 0; i < length; i++) {
@@ -328,84 +332,86 @@ void die(char *str)
 int main(int argc, char **argv)
 {
 	/* disable core dump for security */
-	setrlimit(RLIMIT_CORE, &(struct rlimit) {0, 0});
+	setrlimit(RLIMIT_CORE, &(struct rlimit){0, 0});
 
-	ARGBEGIN {
-		case 'h':
-			usage();
-			break;
-		case 'v':
-			printf("apm 1.0.0\n");
-			exit(EXIT_SUCCESS);
-			break;
-		case 'e':
-			decrypt_password(EARGF(usage()), 1);
-			exit(EXIT_SUCCESS);
-			break;
-		case 'R':;
-			char *pass_file = get_passfile(EARGF(usage()));
-			if (remove(pass_file)) {
-				perror("apm");
-			} else {
-				printf("Removed %s\n", basename(pass_file));
-			}
-			free(pass_file);
-			exit(EXIT_SUCCESS);
-			break;
-		case 'I':;
-				 char *pw = get_password();
-				 encrypt_password(EARGF(usage()), pw);
-				 free(pw);
-				 exit(EXIT_SUCCESS);
-				 break;
-		case 'Q':
-				 decrypt_password(EARGF(usage()), 0);
-				 exit(EXIT_SUCCESS);
-				 break;
-		case 'L':;
-				 char *apm = get_apm();
-				 tree(apm, 0);
-				 free(apm);
-				 exit(EXIT_SUCCESS);
-				 break;
-		case 'M':;
-				 char *filename = EARGF(usage());
-				 FILE *file = fopen(filename, "r");
-				 if (file == NULL) {
-					 die("Cannot open file to read");
-				 }
-				 fseek(file, 0, SEEK_END);
-				 long file_size = ftell(file);
-				 fseek(file, 0, SEEK_SET);
-				 char *content = memalloc(file_size);
-				 fread(content, sizeof(char), file_size, file);
-				 char *f_basename = basename(filename);
-				 char *dot = strrchr(f_basename, '.');
-				 if (dot != NULL) {
-					 *dot = '\0';
-				 }
-				 encrypt_password(f_basename, content);
-				 exit(EXIT_SUCCESS);
-				 break;
-		case 'G':;
-				 if (argc > 0)
-					 --argc, ++argv;
-				 goto run;
-		default:
-				 usage();
-	} ARGEND;
+	ARGBEGIN
+	{
+	case 'h':
+		usage();
+		break;
+	case 'v':
+		printf("apm 1.0.0\n");
+		exit(EXIT_SUCCESS);
+		break;
+	case 'e':
+		decrypt_password(EARGF(usage()), 1);
+		exit(EXIT_SUCCESS);
+		break;
+	case 'R':;
+		char *pass_file = get_passfile(EARGF(usage()));
+		if (remove(pass_file)) {
+			perror("apm");
+		} else {
+			printf("Removed %s\n", basename(pass_file));
+		}
+		free(pass_file);
+		exit(EXIT_SUCCESS);
+		break;
+	case 'I':;
+		char *pw = get_password();
+		encrypt_password(EARGF(usage()), pw);
+		free(pw);
+		exit(EXIT_SUCCESS);
+		break;
+	case 'Q':
+		decrypt_password(EARGF(usage()), 0);
+		exit(EXIT_SUCCESS);
+		break;
+	case 'L':;
+		char *apm = get_apm();
+		tree(apm, 0);
+		free(apm);
+		exit(EXIT_SUCCESS);
+		break;
+	case 'M':;
+		char *filename = EARGF(usage());
+		FILE *file = fopen(filename, "r");
+		if (file == NULL) {
+			die("Cannot open file to read");
+		}
+		fseek(file, 0, SEEK_END);
+		long file_size = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		char *content = memalloc(file_size);
+		fread(content, sizeof(char), file_size, file);
+		char *f_basename = basename(filename);
+		char *dot = strrchr(f_basename, '.');
+		if (dot != NULL) {
+			*dot = '\0';
+		}
+		encrypt_password(f_basename, content);
+		exit(EXIT_SUCCESS);
+		break;
+	case 'G':;
+		if (argc > 0)
+			--argc, ++argv;
+		goto run;
+	default:
+		usage();
+	}
+	ARGEND;
 
 run:
 	switch (argc) {
-		case 0:
-			usage();
-			break;
-		case 1:
-			decrypt_password(argv[0], 0);
-			break;
-		case 2:
-			generate_password(argv[0], atoi(argv[1]));
-			break;
+	case 0:
+		usage();
+		break;
+	case 1:
+		decrypt_password(argv[0], 0);
+		break;
+	case 2:
+		generate_password(argv[0], atoi(argv[1]));
+		break;
 	}
 
 	return 0;
