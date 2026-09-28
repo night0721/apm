@@ -170,7 +170,7 @@ char *get_password(void)
 	return password;
 }
 
-void encrypt_password(const char *name, char *password)
+void encrypt_password(const char *name, char *password, size_t password_len)
 {
 	char *m_key = get_master_key();
 	uint8_t key[KEY_SIZE];
@@ -181,15 +181,7 @@ void encrypt_password(const char *name, char *password)
 	/* hash master password to give us the key for encrypting the password */
 	blake2b(key, KEY_SIZE, NULL, 0, m_key, strlen(m_key));
 
-	size_t pw_len = strlen(password);
-	/* find last \n and replace with 0 */
-	if (strrchr(password, '\n') != NULL) {
-		strrchr(password, '\n')[0] = '\0';
-	}
-	char data[1024]; /* max 1024 bytes */
-	strcpy(data, password);
-
-	size_t data_len = EncryptData((uint8_t *)data, pw_len, key, iv);
+	size_t data_len = EncryptData((uint8_t *) password, password_len, key, iv);
 
 	char *filepath = get_passfile(name);
 	FILE *file = fopen(filepath, "wb");
@@ -200,7 +192,7 @@ void encrypt_password(const char *name, char *password)
 	}
 
 	fwrite(iv, sizeof(iv), 1, file);
-	fwrite(data, data_len, 1, file);
+	fwrite(password, data_len, 1, file);
 
 	fclose(file);
 	free(filepath);
@@ -258,9 +250,11 @@ void decrypt_password(const char *name, int open)
 		fseek(tmp, 0, SEEK_END);
 		long tmp_size = ftell(tmp);
 		fseek(tmp, 0, SEEK_SET);
-		char content[tmp_size + 1];
-		fread(content, tmp_size, sizeof(char), tmp);
-		encrypt_password(name, content);
+		char *content = memalloc(tmp_size + 1);
+		fread(content, 1, tmp_size, tmp);
+		content[tmp_size] = '\0';
+		encrypt_password(name, content, tmp_size);
+		free(content);
 		fclose(tmp);
 	} else {
 		printf("%s\n", ciphered);
@@ -319,7 +313,7 @@ void generate_password(char *name, int length)
 	}
 	random_string[length] = '\0';
 	printf("The generated password for %s is: %s\n", name, random_string);
-	encrypt_password(name, random_string);
+	encrypt_password(name, random_string, strlen(random_string));
 	free(random_string);
 }
 
@@ -359,7 +353,7 @@ int main(int argc, char **argv)
 		break;
 	case 'I':;
 		char *pw = get_password();
-		encrypt_password(EARGF(usage()), pw);
+		encrypt_password(EARGF(usage()), pw, strlen(pw));
 		free(pw);
 		exit(EXIT_SUCCESS);
 		break;
@@ -382,14 +376,15 @@ int main(int argc, char **argv)
 		fseek(file, 0, SEEK_END);
 		long file_size = ftell(file);
 		fseek(file, 0, SEEK_SET);
-		char *content = memalloc(file_size);
+		char *content = memalloc(file_size + 1);
 		fread(content, sizeof(char), file_size, file);
+		content[file_size] = '\0';
 		char *f_basename = basename(filename);
 		char *dot = strrchr(f_basename, '.');
 		if (dot != NULL) {
 			*dot = '\0';
 		}
-		encrypt_password(f_basename, content);
+		encrypt_password(f_basename, content, file_size);
 		exit(EXIT_SUCCESS);
 		break;
 	case 'G':;
