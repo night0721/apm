@@ -238,15 +238,49 @@ void decrypt_password(const char *name, int open)
 		if (editor == NULL) {
 			die("EDITOR not defined");
 		}
-		char tmp_f[] = "/tmp/apm";
-		FILE *tmp = fopen(tmp_f, "w+");
+
+		const char *runtime = getenv("XDG_RUNTIME_DIR");
+
+		if (runtime == NULL)
+			die("XDG_RUNTIME_DIR not defined");
+
+		char tmp_f[PATH_MAX];
+		FILE *tmp;
+
+		if (snprintf(tmp_f, sizeof(tmp_f),
+		             "%s/apm-XXXXXX", runtime) >= sizeof(tmp_f))
+			die("Temporary path too long");
+
+		int tmp_fd = mkstemp(tmp_f);
+		if (tmp_fd < 0)
+			die("Cannot create temporary file");
+
+		if (fchmod(tmp_fd, 0600) != 0) {
+			close(tmp_fd);
+			unlink(tmp_f);
+			die("Cannot set temporary file permissions");
+		}
+
+		tmp = fdopen(tmp_fd, "w+");
+		if (tmp == NULL) {
+			close(tmp_fd);
+			unlink(tmp_f);
+			die("Cannot open temporary file");
+		}
+
 		fprintf(tmp, "%s\n", ciphered);
 		fclose(tmp);
 		char *cmd = memalloc(strlen(editor) + strlen(tmp_f) + 1);
 		sprintf(cmd, "%s %s", editor, tmp_f);
 		system(cmd);
 		free(cmd);
+
 		tmp = fopen(tmp_f, "r");
+		if (tmp == NULL) {
+			unlink(tmp_f);
+			die("Cannot reopen temporary file");
+		}
+
 		fseek(tmp, 0, SEEK_END);
 		long tmp_size = ftell(tmp);
 		fseek(tmp, 0, SEEK_SET);
@@ -256,6 +290,7 @@ void decrypt_password(const char *name, int open)
 		encrypt_password(name, content, tmp_size);
 		free(content);
 		fclose(tmp);
+		unlink(tmp_f);
 	} else {
 		printf("%s\n", ciphered);
 	}
@@ -275,7 +310,7 @@ char *get_master_key(void)
 			exit(EXIT_FAILURE);
 		}
 		struct stat st;
-		if ((fstat(fileno(key_file), &st) == 0) || (S_ISREG(st.st_mode))) {
+		if ((fstat(fileno(key_file), &st) == 0) && (S_ISREG(st.st_mode))) {
 			size_t pass_size = st.st_size;
 			m_key = memalloc(pass_size);
 			if (fgets(m_key, pass_size, key_file) == NULL) {
