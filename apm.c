@@ -16,6 +16,7 @@
 
 #define KEY_SIZE 32
 #define IV_SIZE 16
+#define SALT_SIZE 16
 
 char *argv0;
 
@@ -175,11 +176,19 @@ void encrypt_password(const char *name, char *password, size_t password_len)
 	char *m_key = get_master_key();
 	uint8_t key[KEY_SIZE];
 	uint8_t iv[IV_SIZE];
+	uint8_t salt[SALT_SIZE];
 
 	/* generate random bytes for iv */
 	random_bytes(iv, sizeof(iv));
-	/* hash master password to give us the key for encrypting the password */
-	blake2b(key, KEY_SIZE, NULL, 0, m_key, strlen(m_key));
+	random_bytes(salt, sizeof(salt));
+
+	/* Derive the AES key from the master key and per-entry salt. */
+	size_t kdf_len = strlen(m_key) + sizeof(salt);
+	uint8_t *kdf_input = memalloc(kdf_len);
+	memcpy(kdf_input, m_key, strlen(m_key));
+	memcpy(kdf_input + strlen(m_key), salt, sizeof(salt));
+	blake2b(key, KEY_SIZE, NULL, 0, kdf_input, kdf_len);
+	free(kdf_input);
 
 	size_t data_len = EncryptData((uint8_t *) password, password_len, key, iv);
 
@@ -192,6 +201,7 @@ void encrypt_password(const char *name, char *password, size_t password_len)
 	}
 
 	fwrite(iv, sizeof(iv), 1, file);
+	fwrite(salt, sizeof(salt), 1, file);
 	fwrite(password, data_len, 1, file);
 
 	fclose(file);
@@ -204,6 +214,7 @@ void decrypt_password(const char *name, int open)
 	char *m_key = get_master_key();
 	uint8_t key[KEY_SIZE];
 	uint8_t iv[IV_SIZE];
+	uint8_t salt[SALT_SIZE];
 
 	char *filepath = get_passfile(name);
 	FILE *file = fopen(filepath, "rb");
@@ -214,21 +225,31 @@ void decrypt_password(const char *name, int open)
 	}
 
 	/* get iv from file */
-	fread(iv, 1, sizeof(iv), file);
+	if (fread(iv, 1, sizeof(iv), file) != sizeof(iv))
+		die("Invalid pass file");
+
+	if (fread(salt, 1, sizeof(salt), file) != sizeof(salt))
+		die("Invalid pass file");
 
 	fseek(file, 0, SEEK_END);
-	if (ftell(file) <= sizeof(iv)) {
+	if (ftell(file) <= sizeof(iv) + sizeof(salt)) {
 		free(m_key);
 		free(filepath);
 		fclose(file);
 		die("Empty file");
 	}
-	size_t ciphered_len = ftell(file) - sizeof(iv);
-	fseek(file, sizeof(iv), SEEK_SET);
+	size_t ciphered_len = ftell(file) - sizeof(iv) - sizeof(salt);
+	fseek(file, sizeof(iv) + sizeof(salt), SEEK_SET);
 
 	char ciphered[ciphered_len];
 	fread(ciphered, 1, ciphered_len, file);
-	blake2b(key, KEY_SIZE, NULL, 0, m_key, strlen(m_key));
+
+	size_t kdf_len = strlen(m_key) + sizeof(salt);
+	uint8_t *kdf_input = memalloc(kdf_len);
+	memcpy(kdf_input, m_key, strlen(m_key));
+	memcpy(kdf_input + strlen(m_key), salt, sizeof(salt));
+	blake2b(key, KEY_SIZE, NULL, 0, kdf_input, kdf_len);
+	free(kdf_input);
 
 	size_t data_len = DecryptData((uint8_t *)ciphered, ciphered_len, key, iv);
 	ciphered[data_len] = '\0';
